@@ -41,7 +41,12 @@ void print()
 	}
 	for(int i=0;i<ProInBack;i++)
 	{
-		printf("%d %d %d\n",i,ArrProInBack[i][0],ArrProInBack[i][1]);
+		printf("%d %d\t[",i,ArrProInBack[i][0]);
+		if(ArrProInBack[i][1])
+			printf("Running..]\n");
+		else
+			printf("Stopped..]\n");
+		
 	}
 }
 void BackProDied(int id)
@@ -320,6 +325,31 @@ int chk(char *cmd,char **envp)
 		ProInBack--;
 		printf("Process with pid : %d continued...\n",pid);
 		SwitchTerminal(pid);
+		return 1;
+	}
+	if((argv[0][0]=='b')&&(argv[0][1]=='g'))
+	{
+		int num=0;
+		char *c;
+		if(count>1)
+		if((c=strchr(argv[1],'%'))!=NULL)
+		{
+			*c++;
+			num = atoi(c);
+		}
+		int pid = ArrProInBack[num][0];
+		if(ArrProInBack[num][1]==1)
+		{
+			printf("Process with pid : %d Stopped...\n",pid);
+			ArrProInBack[num][1]=0;
+			kill(pid*(-1),20);
+		}
+		else if(ArrProInBack[num][1]==0)
+		{
+			printf("Process with pid : %d Continued...\n",pid);
+			ArrProInBack[num][1]=1;
+			kill(pid*(-1),18);
+		}
 		return 1;
 	}
 }
