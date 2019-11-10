@@ -208,7 +208,6 @@ int chld(char *cmd,char **envp)
 		}
 		else
 		{
-
 			execfunc(argv,envp);
 		}
 	}
@@ -316,18 +315,22 @@ int getoutput(char *command,char *buff,char **envp)
 	  while ((dup2(filedes[1], STDOUT_FILENO) == -1) && (errno == EINTR)) {}
 	  close(filedes[1]);
 	  close(filedes[0]);
-	  exe(command,envp);
+	  // if(strcmp(command,"cp")==0||strcmp(command,"rmdir")==0||strcmp(command,"mv")==0
+	  system(command);
+	  // exe(command,envp);
 	  //perror("execl");
 	  _exit(1);
 	}
 	close(filedes[1]);
 	char buffer[MAX];
 	int i=0;
+	int su=0;
 	while (1) 
 	{
 		char bu[MAX];
 		bzero(bu,MAX);
 		ssize_t count = read(filedes[0], bu, MAX);
+		su=su+count;
 		if (count == -1) 
 		{
 			if (errno == EINTR) 
@@ -353,6 +356,11 @@ int getoutput(char *command,char *buff,char **envp)
 			}
 		}
 		i++;
+	}
+	if(su==0)
+	{
+		// printf("successfull\n");
+		strcat(buff,"successfull\n");
 	}
 	close(filedes[0]);
 	waitpid(pid,NULL,WUNTRACED);
@@ -500,6 +508,7 @@ int func(int sockfd,char **env)
     if(!flag)
     {
         printf("No such node found please check config file ...\n");
+		kill(ret,SIGINT);
 		exit(0);
     }
 
@@ -697,11 +706,6 @@ int client(char *buff,int port,char ip[20],char * re)
 } 
 struct node * CreatePortFile(char *addr)
 {
-	if( access( addr, F_OK ) == -1 )
-	{		
-		FILE *fp = fopen(addr,"w");
-		fclose(fp);
-	}
 	FILE *fp = fopen(addr,"r");
 	if(fp==NULL)
 	{
@@ -809,8 +813,6 @@ int cli(char *pfile,char *po)
 						b[j++]=bu[i][k];
 		
 				c=strchr(b,'>');
-				if(c==NULL)
-					c=strchr(b,'.');
 				bzero(command,1000);
 				if(c!=NULL)
 				{
@@ -865,8 +867,6 @@ int cli(char *pfile,char *po)
 		else
 		{
 			c=strchr(buff,'>');
-			if(c==NULL)
-				c=strchr(buff,'.');
 			if(c!=NULL)
 			{
 				if(*(c-1)==' ')
@@ -899,6 +899,7 @@ int cli(char *pfile,char *po)
 			}
 			else
 			{
+				// printf("for itself\n");
 				p = ReturnPort(root,po);
 				// printf("p port %s %d\n",p->ip,p->port);
 				if(p==NULL)
@@ -926,11 +927,15 @@ int cli(char *pfile,char *po)
 }
 int main(int argc,char *argv[],char *env[])
 {
-	
+	if( access( "config.file", F_OK ) == -1 )
+	{		
+		FILE *fp = fopen("config.file","w");
+		fclose(fp);
+	}
 
 	if(argc==4)
 	{
-		FILE *fp = fopen("config.file","r");
+		FILE *fp = fopen("config.file","a");
 		if(fp==NULL)
 		{
 			perror("File opening Error : ");
