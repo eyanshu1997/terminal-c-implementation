@@ -33,12 +33,6 @@ void removeSpaces(char *str)
 		str[i-1]='\0';
 } 
 
-char clr(char *c,int len)
-{
-	int i=0;
-	for(int i=0;i<len;i++)
-		*(c+i)='\0';
-}
 
 int parse(char *line,char **argv)
 {
@@ -128,123 +122,8 @@ int chkpip(char *line,char *buff)
 	return 0;
 }
 
-int findcmd(char **cmd,char **ar) 
-{
-	char *dup = strdup(getenv("PATH"));
-	char *s = dup;
-	char *p = NULL;
-	do {
-		p = strchr(s, ':');
-		if (p != NULL) {
-			p[0] = 0;
-		}
-		char d[1000];
-		// printf(" $PATH: %s\n", s);
-		strcpy(d,s);
-		strcat(d,"/");
-		strcat(d,cmd[0]);
-		// printf("chcecking in $PATH: %s\n", d);
-		FILE *file;
-		if( access( d, F_OK ) != -1 ) 
-		{
-			// printf("found :%s\n ",d);
-			strcat(newcmd,d);
-			int j=0;
-			for(j=1;*(cmd+j);j++)
-			{
-				;
-			}
-			if(j>1)
-				strcat(newcmd," ");
-			int i=1;
-			for(i=1;*(cmd+i);i++)
-			{
-				strcat(newcmd,*(cmd+i));
-				if(i!=j-1)
-					strcat(newcmd," ");
-			}
-			int count=parse(newcmd,ar);
-			return 1;
-			// file exists
-		} else {
-			// file doesn't exist
-		}
-		s = p + 1;
-	} while (p != NULL);
 
-	free(dup);
-	return -1;
-}
-
-
-int execfunc(char **argv,char **envp)
-{
-	if(execve(*argv, argv,envp)<0)
-	{
-
-		fprintf(stderr, "Error\n");
-		exit(0);
-	}
-}
-int chld(char *cmd,char **envp)
-{
-	
-	if(strchr(cmd,'.')!=NULL)
-	{
-		char  *oargv[10000]={'\0'};
-		int count=parse(cmd,oargv);
-		execfunc(oargv,envp);
-	}
-	else
-	{
-		char  *oargv[10000]={'\0'};
-		int count=parse(cmd,oargv);
-		char *argv[1000];
-		int check=findcmd(oargv,argv);
-		if(check==-1)
-		{
-			printf("command not found\n");
-			exit(0);
-		}
-		else
-		{
-			execfunc(argv,envp);
-		}
-	}
-}
-   
-int chk(char *cmd,char **envp)
-{
-	char  *argv[10000]={'\0'};
-	int count=parse(cmd,argv);
-	int i=0;
-	if(strcmp(argv[0],"quit")==0||strcmp(argv[0],"Quit")==0||strcmp(argv[0],"Exit")==0||strcmp(argv[0],"EXIT")==0||strcmp(argv[0],"exit")==0||strcmp(argv[0],"QUIT")==0)
-	{
-		printf("exiting\n");
-		exit(0);
-		return 1;
-	}
-}
-
-
-int exe(char *cmd,char **envp)
-{
-	char arg[1000];
-	strcpy(arg,cmd);
-	if(chk(cmd,envp)==1)
-		return 0;
-	int ret;
-	if((ret=fork())==0)
-	{
-
-		chld(arg,envp);
-		// fgbg(arg,envp);
-		exit(0);
-	}
-
-	return ret;
-}
-          
+      
 int getioutput(char *command,char *buff,char **envp,char *x)
 {
 	char file[100]={'\0'};
@@ -279,6 +158,7 @@ int getioutput(char *command,char *buff,char **envp,char *x)
 			strcat(cmmd,file);
 			
             strcat(command,cmmd);
+			// exe(command,envp);
 			system(command);
 			exit(0);
     }                                  
@@ -443,14 +323,7 @@ int func(int sockfd,char **env)
 		// printf("read\n");
         int count=read(sockfd, buff, sizeof(buff)); 
 		int l=0;
-		// while(count==0)
-		// {
-			// l++;
-			// sleep(0.5);
-			// count=read(sockfd, buff, sizeof(buff)); 
-			// if(l==1000000)
-				// exit(0);
-		// }
+
 		      // if msg contains "Exit" then server exit and chat ended. 
         if (strncmp("exit", buff, 4) == 0) { 
             printf("Server Exit...\n"); 
@@ -512,19 +385,18 @@ int func(int sockfd,char **env)
 		exit(0);
     }
 
-	//--------------------Sever connection ---------------------//
+
 
     int sockfd, connfd, len; 
     struct sockaddr_in servaddr, cli; 
   
-    // socket create and verification 
+
     sockfd = socket(AF_INET, SOCK_STREAM, 0); 
     if (sockfd == -1) { 
         printf("socket creation failed...\n"); 
         exit(0); 
     } 
-    // else
-        // printf("Socket successfully created..\n"); 
+
     bzero(&servaddr, sizeof(servaddr)); 
   
     // assign IP, PORT 
@@ -538,10 +410,8 @@ int func(int sockfd,char **env)
 		kill(ret,SIGINT);
         exit(0); 
     } 
-    // else
-        // printf("Socket successfully binded at port %d ..\n",port); 
-  
-    // Now server is ready to listen and verification 
+    
+
     if ((listen(sockfd, 5)) != 0) { 
         printf("Listen failed...\n"); 
 		kill(ret,SIGINT);
